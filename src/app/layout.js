@@ -1,4 +1,4 @@
-import { Inter, JetBrains_Mono, Press_Start_2P } from "next/font/google";
+import { Inter, JetBrains_Mono, Press_Start_2P, VT323, Orbitron } from "next/font/google";
 import localFont from "next/font/local";
 import Link from "next/link";
 import { Analytics } from "@vercel/analytics/next";
@@ -8,6 +8,8 @@ import { ClickSound } from "@/components/ui/click-sound";
 import { MinecraftBackground } from "@/components/minecraft/MinecraftBackground";
 import { OsuBackground } from "@/components/osu/OsuBackground";
 import { PokemonBackground } from "@/components/pokemon/PokemonBackground";
+import { OsrsBackground } from "@/components/osrs/OsrsBackground";
+import { CyberpunkBackground } from "@/components/cyberpunk/CyberpunkBackground";
 import { getAllRecipes } from "@/lib/recipes";
 import "./globals.css";
 
@@ -33,6 +35,19 @@ const pressStart2P = Press_Start_2P({
   variable: "--font-pokemon",
   subsets: ["latin"],
   weight: "400",
+  display: "swap",
+});
+
+const vt323 = VT323({
+  variable: "--font-osrs",
+  subsets: ["latin"],
+  weight: "400",
+  display: "swap",
+});
+
+const orbitron = Orbitron({
+  variable: "--font-cyberpunk",
+  subsets: ["latin"],
   display: "swap",
 });
 
@@ -99,11 +114,13 @@ export default async function RootLayout({ children }) {
   }));
 
   return (
-    <html lang="en" className={`${inter.variable} ${jetbrainsMono.variable} ${monocraft.variable} ${pressStart2P.variable}`}>
+    <html lang="en" className={`${inter.variable} ${jetbrainsMono.variable} ${monocraft.variable} ${pressStart2P.variable} ${vt323.variable} ${orbitron.variable}`}>
       <body className="antialiased bg-background text-foreground min-h-screen">
         <MinecraftBackground />
         <OsuBackground />
         <PokemonBackground />
+        <OsrsBackground />
+        <CyberpunkBackground />
         <ClickSound />
         <div className="relative z-10 min-h-screen flex flex-col">
         {/* Global header */}
@@ -116,7 +133,7 @@ export default async function RootLayout({ children }) {
                 alt="vLLM"
                 width={96}
                 height={36}
-                className="h-8 w-auto dark:hidden minecraft:hidden osu:hidden"
+                className="h-8 w-auto dark:hidden minecraft:hidden osu:hidden osrs:hidden cyberpunk:hidden"
               />
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
@@ -124,7 +141,7 @@ export default async function RootLayout({ children }) {
                 alt="vLLM"
                 width={96}
                 height={36}
-                className="h-8 w-auto hidden dark:block minecraft:block osu:block"
+                className="h-8 w-auto hidden dark:block minecraft:block osu:block osrs:block cyberpunk:block"
               />
               <span className="text-muted-foreground/50 font-light text-xl leading-none">/</span>
               <span className="font-semibold text-base group-hover:text-vllm-blue transition-colors">Recipes</span>

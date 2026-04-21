@@ -4,6 +4,8 @@
 @custom-variant minecraft (&:is(.minecraft *));
 @custom-variant osu (&:is(.osu *));
 @custom-variant pokemon (&:is(.pokemon *));
+@custom-variant osrs (&:is(.osrs *));
+@custom-variant cyberpunk (&:is(.cyberpunk *));
 
 @theme inline {
   --color-background: var(--background);
@@ -467,6 +469,275 @@
   border-radius: 9999px;
 }
 
+/* ── Old School RuneScape Theme ── */
+/* Dark-brown wooden UI with tan/parchment panels, yellow chat-style text,
+   and floating XP drops as the background motif. */
+.osrs {
+  --radius: 0.125rem;
+  --code-bg: #2b2216;
+  --code-fg: #ffff00;
+  --code-block-bg: #1a1410;
+  --code-block-fg: #ffff00;
+  --command-bg: #0d0a08;
+  --command-fg: #ffff00;
+  --background: #3a2e1f;
+  --foreground: #f0e0b8;
+  --card: #4a3a27;
+  --card-foreground: #f0e0b8;
+  --popover: #2b2216;
+  --popover-foreground: #ffd700;
+  --primary: #ffd700;
+  --primary-foreground: #3a2e1f;
+  --secondary: #8b6f3e;
+  --secondary-foreground: #f5deb3;
+  --muted: #4a3a27;
+  --muted-foreground: #d2b48c;
+  --accent: #deb887;
+  --accent-foreground: #3a2e1f;
+  --destructive: #c21e1e;
+  --border: #8b6f3e;
+  --input: #2b2216;
+  --ring: #ffd700;
+  color-scheme: dark;
+
+  --font-inter: var(--font-osrs, "VT323"), "Courier New", monospace;
+  --font-jetbrains: var(--font-osrs, "VT323"), "Courier New", monospace;
+
+  scrollbar-color: #8b6f3e #2b2216;
+  scrollbar-width: thin;
+
+  background:
+    linear-gradient(rgba(58, 46, 31, 0.92), rgba(58, 46, 31, 0.92)),
+    repeating-linear-gradient(
+      90deg,
+      rgba(139, 111, 62, 0.08) 0,
+      rgba(139, 111, 62, 0.08) 2px,
+      transparent 2px,
+      transparent 4px
+    );
+}
+
+/* Bump up the VT323 font — it reads small vs. Inter at equal px. */
+.osrs body,
+.osrs input,
+.osrs button,
+.osrs select,
+.osrs textarea {
+  font-size: 1.2em;
+  line-height: 1.3;
+}
+
+/* Chat-style yellow drop-shadowed text on headings */
+.osrs h1,
+.osrs h2,
+.osrs h3,
+.osrs h4 {
+  color: #ffd700;
+  text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.7);
+}
+
+/* Beveled tan panels everywhere */
+.osrs button,
+.osrs [role="button"] {
+  border: 2px solid !important;
+  border-color: #d2b48c #3a2416 #3a2416 #d2b48c !important;
+  background-color: #8b6f3e !important;
+  color: #ffd700 !important;
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.7);
+  border-radius: 2px !important;
+}
+.osrs button:hover,
+.osrs [role="button"]:hover {
+  background-color: #a68352 !important;
+  color: #ffffff !important;
+}
+.osrs button:active,
+.osrs [role="button"]:active {
+  border-color: #3a2416 #d2b48c #d2b48c #3a2416 !important;
+}
+
+/* Sunken chat-input slots */
+.osrs input,
+.osrs select,
+.osrs textarea {
+  border: 2px solid !important;
+  border-color: #1a1410 #8b6f3e #8b6f3e #1a1410 !important;
+  background-color: #1a1410 !important;
+  color: #ffff00 !important;
+  border-radius: 2px !important;
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.7);
+}
+
+.osrs .guide-content a {
+  color: #00ffff;
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.7);
+}
+
+/* XP drop — yellow pixel text that rises and fades */
+@keyframes osrs-xp-rise {
+  0% { transform: translateX(-50%) translateY(0); opacity: 0; }
+  8% { opacity: 1; }
+  85% { opacity: 1; }
+  100% { transform: translateX(-50%) translateY(-80vh); opacity: 0; }
+}
+.osrs-xp-drop {
+  position: absolute;
+  transform: translateX(-50%);
+  font-family: var(--font-osrs, "VT323"), monospace;
+  font-size: 28px;
+  color: #ffff00;
+  text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.85);
+  white-space: nowrap;
+  animation: osrs-xp-rise 2.6s linear forwards;
+  opacity: 0.75;
+}
+
+/* ── Cyberpunk Theme ── */
+/* Near-black base with neon cyan primary, magenta secondary, hazard yellow.
+   Scanlines + perspective grid + text/box glows for the Blade Runner feel. */
+.cyberpunk {
+  --radius: 0;
+  --code-bg: rgba(24, 224, 255, 0.08);
+  --code-fg: #18e0ff;
+  --code-block-bg: #0b0c10;
+  --code-block-fg: #18e0ff;
+  --command-bg: #050608;
+  --command-fg: #18e0ff;
+  --background: #0b0c10;
+  --foreground: #e8faff;
+  --card: #141726;
+  --card-foreground: #e8faff;
+  --popover: #141726;
+  --popover-foreground: #e8faff;
+  --primary: #18e0ff;
+  --primary-foreground: #0b0c10;
+  --secondary: #ff3cf2;
+  --secondary-foreground: #0b0c10;
+  --muted: #141726;
+  --muted-foreground: rgba(232, 250, 255, 0.65);
+  --accent: #ff3cf2;
+  --accent-foreground: #0b0c10;
+  --destructive: #ff2e5b;
+  --border: #18e0ff;
+  --input: #18e0ff;
+  --ring: #ff3cf2;
+  color-scheme: dark;
+
+  --font-inter: var(--font-cyberpunk, "Orbitron"), ui-sans-serif, system-ui, sans-serif;
+  --font-jetbrains: var(--font-cyberpunk, "Orbitron"), ui-monospace, monospace;
+
+  scrollbar-color: #18e0ff #0b0c10;
+  scrollbar-width: thin;
+}
+
+/* Neon text glow */
+.cyberpunk h1,
+.cyberpunk h2,
+.cyberpunk h3,
+.cyberpunk h4 {
+  color: #18e0ff;
+  text-shadow: 0 0 6px #18e0ff, 0 0 18px rgba(24, 224, 255, 0.5);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* Neon buttons — sharp corners, cyan border, magenta on hover */
+.cyberpunk button,
+.cyberpunk [role="button"] {
+  border: 1px solid #18e0ff !important;
+  background-color: rgba(24, 224, 255, 0.05) !important;
+  color: #18e0ff !important;
+  border-radius: 0 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  box-shadow: 0 0 0 1px rgba(24, 224, 255, 0.3), inset 0 0 12px rgba(24, 224, 255, 0.15);
+  text-shadow: 0 0 6px rgba(24, 224, 255, 0.5);
+  transition: color 0.12s ease, background-color 0.12s ease, box-shadow 0.12s ease, text-shadow 0.12s ease;
+}
+.cyberpunk button:hover,
+.cyberpunk [role="button"]:hover {
+  border-color: #ff3cf2 !important;
+  color: #ff3cf2 !important;
+  background-color: rgba(255, 60, 242, 0.08) !important;
+  box-shadow: 0 0 0 1px #ff3cf2, 0 0 18px rgba(255, 60, 242, 0.6), inset 0 0 18px rgba(255, 60, 242, 0.2);
+  text-shadow: 0 0 8px rgba(255, 60, 242, 0.8);
+}
+.cyberpunk button:active,
+.cyberpunk [role="button"]:active {
+  background-color: rgba(255, 60, 242, 0.15) !important;
+}
+
+/* Inputs — cyan slot */
+.cyberpunk input,
+.cyberpunk select,
+.cyberpunk textarea {
+  border: 1px solid #18e0ff !important;
+  background-color: rgba(11, 12, 16, 0.85) !important;
+  color: #e8faff !important;
+  border-radius: 0 !important;
+  box-shadow: inset 0 0 12px rgba(24, 224, 255, 0.12);
+}
+.cyberpunk input:focus,
+.cyberpunk select:focus,
+.cyberpunk textarea:focus {
+  outline: none;
+  border-color: #ff3cf2 !important;
+  box-shadow: 0 0 0 1px #ff3cf2, 0 0 14px rgba(255, 60, 242, 0.45), inset 0 0 12px rgba(255, 60, 242, 0.2);
+}
+
+.cyberpunk .guide-content a {
+  color: #ff3cf2;
+  text-shadow: 0 0 6px rgba(255, 60, 242, 0.55);
+}
+
+/* ── Cyberpunk background layers ── */
+@keyframes cp-grid-scroll {
+  from { background-position: 0 0; }
+  to { background-position: 0 48px; }
+}
+.cp-grid-top,
+.cp-grid-bottom {
+  position: absolute;
+  left: -20%;
+  right: -20%;
+  height: 55%;
+  background-image:
+    linear-gradient(rgba(24, 224, 255, 0.22) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(24, 224, 255, 0.22) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: linear-gradient(to bottom, transparent, black 40%, black 70%, transparent);
+  -webkit-mask-image: linear-gradient(to bottom, transparent, black 40%, black 70%, transparent);
+}
+.cp-grid-top {
+  top: -10%;
+  transform: perspective(600px) rotateX(-65deg);
+  transform-origin: center bottom;
+  animation: cp-grid-scroll 6s linear infinite reverse;
+}
+.cp-grid-bottom {
+  bottom: -10%;
+  transform: perspective(600px) rotateX(65deg);
+  transform-origin: center top;
+  animation: cp-grid-scroll 6s linear infinite;
+}
+.cp-scanlines {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0) 0,
+    rgba(0, 0, 0, 0) 2px,
+    rgba(0, 0, 0, 0.18) 2px,
+    rgba(0, 0, 0, 0.18) 3px
+  );
+  mix-blend-mode: multiply;
+}
+.cp-vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center, transparent 35%, rgba(11, 12, 16, 0.85) 100%);
+}
+
 /* Scrollbars — soften dark mode (default WebKit scrollbar reads as white) */
 .dark {
   color-scheme: dark;
@@ -509,7 +780,11 @@
 html.dark .shiki,
 html.dark .shiki span,
 html.osu .shiki,
-html.osu .shiki span {
+html.osu .shiki span,
+html.osrs .shiki,
+html.osrs .shiki span,
+html.cyberpunk .shiki,
+html.cyberpunk .shiki span {
   color: var(--shiki-dark);
   background-color: var(--shiki-dark-bg);
   font-style: var(--shiki-dark-font-style);

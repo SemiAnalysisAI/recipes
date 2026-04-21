@@ -2,6 +2,7 @@
 
 @custom-variant dark (&:is(.dark *));
 @custom-variant minecraft (&:is(.minecraft *));
+@custom-variant osu (&:is(.osu *));
 
 @theme inline {
   --color-background: var(--background);
@@ -186,6 +187,130 @@
   border-image: linear-gradient(to right, #7fb238, #5d9b47, #7fb238, #526935, #7fb238) 1;
 }
 
+/* ── osu! Theme ── */
+.osu {
+  --radius: 1.25rem;
+  --code-bg: rgba(255, 102, 170, 0.12);
+  --code-fg: #ffd9ea;
+  --code-block-bg: rgba(25, 10, 20, 0.65);
+  --code-block-fg: #ffecf4;
+  --command-bg: rgba(15, 5, 12, 0.75);
+  --command-fg: #ffffff;
+  --background: #180810;
+  --foreground: #ffffff;
+  --card: rgba(255, 102, 170, 0.08);
+  --card-foreground: #ffffff;
+  --popover: #241018;
+  --popover-foreground: #ffffff;
+  --primary: #ff66aa;
+  --primary-foreground: #180810;
+  --secondary: rgba(255, 102, 170, 0.14);
+  --secondary-foreground: #ffffff;
+  --muted: rgba(255, 102, 170, 0.1);
+  --muted-foreground: rgba(255, 217, 234, 0.72);
+  --accent: rgba(255, 102, 170, 0.22);
+  --accent-foreground: #ffffff;
+  --destructive: #ff5577;
+  --border: rgba(255, 102, 170, 0.28);
+  --input: rgba(255, 102, 170, 0.35);
+  --ring: #ff66aa;
+  color-scheme: dark;
+
+  /* Comic Sans is the meme font players associate with old osu! menus */
+  --font-inter: "Comic Sans MS", "Comic Sans", "Chalkboard SE", cursive;
+  --font-jetbrains: "Comic Sans MS", "Comic Sans", ui-monospace, monospace;
+
+  scrollbar-color: #ff66aa #180810;
+  scrollbar-width: thin;
+  background: radial-gradient(ellipse at top, #2a0f1c 0%, #180810 55%);
+}
+
+/* Pink glow on all text */
+.osu {
+  text-shadow: 0 0 4px rgba(255, 102, 170, 0.25);
+}
+
+/* Pill-shaped buttons + pink glow */
+.osu button,
+.osu [role="button"] {
+  border-radius: 9999px !important;
+  box-shadow: 0 0 0 1px rgba(255, 102, 170, 0.4), 0 0 18px rgba(255, 102, 170, 0.22);
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+.osu button:hover,
+.osu [role="button"]:hover {
+  box-shadow: 0 0 0 1px rgba(255, 102, 170, 0.8), 0 0 28px rgba(255, 102, 170, 0.5);
+  transform: scale(1.03);
+}
+.osu button:active,
+.osu [role="button"]:active {
+  transform: scale(0.97);
+}
+
+/* Rounded inputs with a soft pink glow */
+.osu input,
+.osu select,
+.osu textarea {
+  border-radius: 9999px !important;
+  border: 1px solid rgba(255, 102, 170, 0.35) !important;
+  background-color: rgba(255, 102, 170, 0.06) !important;
+  box-shadow: inset 0 0 12px rgba(255, 102, 170, 0.1);
+}
+.osu input:focus,
+.osu select:focus,
+.osu textarea:focus {
+  outline: none;
+  border-color: rgba(255, 102, 170, 0.8) !important;
+  box-shadow: 0 0 0 2px rgba(255, 102, 170, 0.3), inset 0 0 12px rgba(255, 102, 170, 0.15);
+}
+
+/* Pink accent on links within the guide */
+.osu .guide-content a {
+  color: #ff8ec2;
+}
+
+/* Floating hit-circle background animations */
+@keyframes osu-approach {
+  0% { transform: scale(2.6); opacity: 0; }
+  25% { opacity: 0.8; }
+  85% { transform: scale(1); opacity: 0.8; }
+  100% { transform: scale(1); opacity: 0; }
+}
+@keyframes osu-body {
+  0%, 78% { opacity: 0; transform: scale(0.85); }
+  85% { opacity: 0.9; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1.7); }
+}
+.osu-hit {
+  position: absolute;
+  transform: translate(-50%, -50%);
+}
+.osu-hit-approach {
+  position: absolute;
+  inset: 0;
+  border: 3px solid var(--osu-col);
+  border-radius: 9999px;
+  box-shadow: 0 0 16px var(--osu-col), inset 0 0 12px var(--osu-col);
+  animation: osu-approach 1.4s ease-out forwards;
+}
+.osu-hit-body {
+  position: absolute;
+  inset: 12%;
+  background: radial-gradient(circle at 32% 30%, rgba(255, 255, 255, 0.7), var(--osu-col) 65%);
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  border-radius: 9999px;
+  box-shadow: 0 0 24px var(--osu-col);
+  animation: osu-body 1.4s ease-out forwards;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-family: "Comic Sans MS", "Comic Sans", cursive;
+  font-weight: 700;
+  font-size: 24px;
+  text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.45);
+}
+
 /* Scrollbars — soften dark mode (default WebKit scrollbar reads as white) */
 .dark {
   color-scheme: dark;
@@ -226,7 +351,9 @@
 
 /* Theme-aware syntax highlighting (rehype-pretty-code dual themes via CSS vars) */
 html.dark .shiki,
-html.dark .shiki span {
+html.dark .shiki span,
+html.osu .shiki,
+html.osu .shiki span {
   color: var(--shiki-dark);
   background-color: var(--shiki-dark-bg);
   font-style: var(--shiki-dark-font-style);

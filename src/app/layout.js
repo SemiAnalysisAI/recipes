@@ -6,6 +6,7 @@ import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { SearchBox } from "@/components/recipes/SearchBox";
 import { ClickSound } from "@/components/ui/click-sound";
 import { MinecraftBackground } from "@/components/minecraft/MinecraftBackground";
+import { OsuBackground } from "@/components/osu/OsuBackground";
 import { getAllRecipes } from "@/lib/recipes";
 import "./globals.css";
 
@@ -93,6 +94,7 @@ export default async function RootLayout({ children }) {
     <html lang="en" className={`${inter.variable} ${jetbrainsMono.variable} ${monocraft.variable}`}>
       <body className="antialiased bg-background text-foreground min-h-screen">
         <MinecraftBackground />
+        <OsuBackground />
         <ClickSound />
         <div className="relative z-10 min-h-screen flex flex-col">
         {/* Global header */}
@@ -105,7 +107,7 @@ export default async function RootLayout({ children }) {
                 alt="vLLM"
                 width={96}
                 height={36}
-                className="h-8 w-auto dark:hidden minecraft:hidden"
+                className="h-8 w-auto dark:hidden minecraft:hidden osu:hidden"
               />
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
@@ -113,7 +115,7 @@ export default async function RootLayout({ children }) {
                 alt="vLLM"
                 width={96}
                 height={36}
-                className="h-8 w-auto hidden dark:block minecraft:block"
+                className="h-8 w-auto hidden dark:block minecraft:block osu:block"
               />
               <span className="text-muted-foreground/50 font-light text-xl leading-none">/</span>
               <span className="font-semibold text-base group-hover:text-vllm-blue transition-colors">Recipes</span>

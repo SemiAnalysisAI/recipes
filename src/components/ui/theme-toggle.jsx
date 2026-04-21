@@ -1,14 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Sun, Moon, Pickaxe, Target } from "lucide-react";
+import { Sun, Moon, Pickaxe, Target, Zap } from "lucide-react";
 
-const THEME_CYCLE = ["light", "dark", "minecraft", "osu"];
+const THEME_CYCLE = ["light", "dark", "minecraft", "osu", "pokemon"];
+const THEME_CLASSES = ["dark", "minecraft", "osu", "pokemon"];
 
 function applyTheme(t) {
   const cls = document.documentElement.classList;
-  cls.remove("dark", "minecraft", "osu");
-  if (t === "dark" || t === "minecraft" || t === "osu") cls.add(t);
+  cls.remove(...THEME_CLASSES);
+  if (THEME_CLASSES.includes(t)) cls.add(t);
 }
 
 export function ThemeToggle() {
@@ -43,6 +44,7 @@ export function ThemeToggle() {
     theme === "light" ? Moon :
     theme === "dark" ? Pickaxe :
     theme === "minecraft" ? Target :
+    theme === "osu" ? Zap :
     Sun;
   const nextLabel = THEME_CYCLE[(THEME_CYCLE.indexOf(theme) + 1) % THEME_CYCLE.length];
 

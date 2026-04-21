@@ -3,6 +3,7 @@
 @custom-variant dark (&:is(.dark *));
 @custom-variant minecraft (&:is(.minecraft *));
 @custom-variant osu (&:is(.osu *));
+@custom-variant pokemon (&:is(.pokemon *));
 
 @theme inline {
   --color-background: var(--background);
@@ -309,6 +310,161 @@
   font-weight: 700;
   font-size: 24px;
   text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.45);
+}
+
+/* ── Pokémon Theme ── */
+/* Palette from official brand: yellow #FFCB05, blue #3D7DCA, navy #003A70,
+   with Poké Ball red #EE1515 as the danger accent. Evokes the Game Boy
+   menu aesthetic: pixel font, thick navy borders, hard pixel shadows. */
+.pokemon {
+  --radius: 0.5rem;
+  --code-bg: #fff9db;
+  --code-fg: #003a70;
+  --code-block-bg: #fffbea;
+  --code-block-fg: #003a70;
+  --command-bg: #003a70;
+  --command-fg: #fffbea;
+  --background: #fffbea;
+  --foreground: #003a70;
+  --card: #ffffff;
+  --card-foreground: #003a70;
+  --popover: #ffffff;
+  --popover-foreground: #003a70;
+  --primary: #3d7dca;
+  --primary-foreground: #ffffff;
+  --secondary: #ffcb05;
+  --secondary-foreground: #003a70;
+  --muted: #fff3b0;
+  --muted-foreground: #3d7dca;
+  --accent: #ffcb05;
+  --accent-foreground: #003a70;
+  --destructive: #ee1515;
+  --border: #003a70;
+  --input: #003a70;
+  --ring: #3d7dca;
+  color-scheme: light;
+
+  --font-inter: var(--font-pokemon, "Press Start 2P"), "Courier New", monospace;
+  --font-jetbrains: var(--font-pokemon, "Press Start 2P"), "Courier New", monospace;
+
+  scrollbar-color: #3d7dca #fff3b0;
+  scrollbar-width: thin;
+}
+
+/* Shrink the pixel font — Press Start 2P reads much larger than Inter at
+   the same size, so compensate site-wide. */
+.pokemon body,
+.pokemon input,
+.pokemon button,
+.pokemon textarea,
+.pokemon select {
+  font-size: 0.72em;
+  line-height: 1.6;
+  letter-spacing: 0.02em;
+}
+
+/* Game Boy menu chrome on buttons + inputs + cards — thick navy border
+   with a pixel-style hard drop shadow. */
+.pokemon button,
+.pokemon [role="button"] {
+  border: 3px solid #003a70 !important;
+  background-color: #ffffff !important;
+  color: #003a70 !important;
+  box-shadow: 3px 3px 0 #003a70;
+  text-transform: uppercase;
+  font-weight: 700;
+  transition: transform 0.06s ease, box-shadow 0.06s ease, background-color 0.06s ease;
+}
+.pokemon button:hover,
+.pokemon [role="button"]:hover {
+  background-color: #ffcb05 !important;
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0 #003a70;
+}
+.pokemon button:active,
+.pokemon [role="button"]:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 #003a70;
+}
+
+.pokemon input,
+.pokemon select,
+.pokemon textarea {
+  border: 3px solid #003a70 !important;
+  background-color: #ffffff !important;
+  color: #003a70 !important;
+  box-shadow: 2px 2px 0 #003a70;
+}
+.pokemon input:focus,
+.pokemon select:focus,
+.pokemon textarea:focus {
+  outline: none;
+  box-shadow: 3px 3px 0 #ffcb05, 3px 3px 0 3px #003a70;
+}
+
+/* Card chrome — Game Boy dialog box look */
+.pokemon .border-border,
+.pokemon .border {
+  border: 3px solid #003a70 !important;
+  box-shadow: 3px 3px 0 #003a70;
+}
+
+/* Yellow highlight on the guide links */
+.pokemon .guide-content a {
+  color: #3d7dca;
+  background: #fff3b0;
+  padding: 0 0.25em;
+  border-radius: 2px;
+}
+.pokemon .guide-content a:hover {
+  background: #ffcb05;
+}
+
+/* ── Poké Ball floaters ── */
+@keyframes pokeball-bob {
+  0%, 100% { transform: translate(-50%, -50%) translateY(0); }
+  50% { transform: translate(-50%, -50%) translateY(-14px); }
+}
+@keyframes pokeball-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.pokeball-wrap {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  animation-name: pokeball-bob;
+  animation-iteration-count: infinite;
+  animation-timing-function: ease-in-out;
+  width: 60px;
+  height: 60px;
+}
+.pokeball {
+  width: 100%;
+  height: 100%;
+  border-radius: 9999px;
+  border: 3px solid #000;
+  background:
+    linear-gradient(#000, #000) no-repeat,
+    linear-gradient(to bottom, #ee1515 50%, #ffffff 50%);
+  background-size: 100% 10%, 100% 100%;
+  background-position: center, center;
+  position: relative;
+  animation-name: pokeball-spin;
+  animation-iteration-count: infinite;
+  animation-timing-function: linear;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+.pokeball::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 30%;
+  aspect-ratio: 1;
+  background: #ffffff;
+  border: 3px solid #000;
+  border-radius: 9999px;
 }
 
 /* Scrollbars — soften dark mode (default WebKit scrollbar reads as white) */

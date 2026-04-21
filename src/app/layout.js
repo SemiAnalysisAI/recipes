@@ -1,4 +1,4 @@
-import { Inter, JetBrains_Mono } from "next/font/google";
+import { Inter, JetBrains_Mono, Press_Start_2P } from "next/font/google";
 import localFont from "next/font/local";
 import Link from "next/link";
 import { Analytics } from "@vercel/analytics/next";
@@ -7,6 +7,7 @@ import { SearchBox } from "@/components/recipes/SearchBox";
 import { ClickSound } from "@/components/ui/click-sound";
 import { MinecraftBackground } from "@/components/minecraft/MinecraftBackground";
 import { OsuBackground } from "@/components/osu/OsuBackground";
+import { PokemonBackground } from "@/components/pokemon/PokemonBackground";
 import { getAllRecipes } from "@/lib/recipes";
 import "./globals.css";
 
@@ -25,6 +26,13 @@ const jetbrainsMono = JetBrains_Mono({
 const monocraft = localFont({
   src: "./fonts/Monocraft.woff2",
   variable: "--font-minecraft",
+  display: "swap",
+});
+
+const pressStart2P = Press_Start_2P({
+  variable: "--font-pokemon",
+  subsets: ["latin"],
+  weight: "400",
   display: "swap",
 });
 
@@ -91,10 +99,11 @@ export default async function RootLayout({ children }) {
   }));
 
   return (
-    <html lang="en" className={`${inter.variable} ${jetbrainsMono.variable} ${monocraft.variable}`}>
+    <html lang="en" className={`${inter.variable} ${jetbrainsMono.variable} ${monocraft.variable} ${pressStart2P.variable}`}>
       <body className="antialiased bg-background text-foreground min-h-screen">
         <MinecraftBackground />
         <OsuBackground />
+        <PokemonBackground />
         <ClickSound />
         <div className="relative z-10 min-h-screen flex flex-col">
         {/* Global header */}

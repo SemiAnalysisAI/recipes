@@ -1,6 +1,7 @@
 @import "tailwindcss";
 
 @custom-variant dark (&:is(.dark *));
+@custom-variant minecraft (&:is(.minecraft *));
 
 @theme inline {
   --color-background: var(--background);
@@ -94,6 +95,95 @@
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
   --ring: oklch(0.551 0.027 264.364);
+}
+
+/* ── Minecraft Theme ── */
+.minecraft {
+  --radius: 0;
+  --code-bg: rgba(0, 0, 0, 0.3);
+  --code-fg: #ffffff;
+  --code-block-bg: rgba(0, 0, 0, 0.4);
+  --code-block-fg: #ffffff;
+  --command-bg: rgba(0, 0, 0, 0.5);
+  --command-fg: #ffffff;
+  --background: #1e1e1e;
+  --foreground: #ffffff;
+  --card: rgba(139, 139, 139, 0.12);
+  --card-foreground: #ffffff;
+  --popover: #1e1e1e;
+  --popover-foreground: #ffffff;
+  --primary: #ffffff;
+  --primary-foreground: #1e1e1e;
+  --secondary: rgba(139, 139, 139, 0.12);
+  --secondary-foreground: #ffffff;
+  --muted: rgba(139, 139, 139, 0.12);
+  --muted-foreground: rgba(255, 255, 255, 0.55);
+  --accent: rgba(139, 139, 139, 0.22);
+  --accent-foreground: #ffffff;
+  --destructive: #ff5555;
+  --border: #555555;
+  --input: #555555;
+  --ring: #ffffff;
+  color-scheme: dark;
+
+  /* Pixel font override — applies everywhere --font-inter / --font-jetbrains
+     are consumed (body sans & mono utilities alike). */
+  --font-inter: var(--font-minecraft, "Monocraft", monospace);
+  --font-jetbrains: var(--font-minecraft, "Monocraft", monospace);
+
+  -webkit-font-smoothing: none;
+  -moz-osx-font-smoothing: unset;
+}
+
+/* Text shadow on all text for that Minecraft HUD look */
+.minecraft * {
+  text-shadow: 1.5px 1.5px 0px rgba(0, 0, 0, 0.4);
+}
+
+/* Kill all border radius — Minecraft has no curves */
+.minecraft [class*="rounded"],
+.minecraft button,
+.minecraft input,
+.minecraft select,
+.minecraft textarea,
+.minecraft [role="button"] {
+  border-radius: 0 !important;
+}
+
+/* Beveled buttons — raised 3D effect */
+.minecraft button,
+.minecraft [role="button"] {
+  border: 2px solid !important;
+  border-color: #ffffff80 #37373780 #37373780 #ffffff80 !important;
+}
+.minecraft button:hover,
+.minecraft [role="button"]:hover {
+  background-color: rgba(170, 170, 221, 0.15) !important;
+  border-color: #ffffffe0 #6666aa80 #6666aa80 #ffffffe0 !important;
+}
+.minecraft button:active,
+.minecraft [role="button"]:active {
+  border-color: #37373780 #ffffff80 #ffffff80 #37373780 !important;
+}
+
+/* Sunken slot effect on inputs */
+.minecraft input,
+.minecraft select,
+.minecraft textarea {
+  border: 2px solid !important;
+  border-color: #373737 #c6c6c680 #c6c6c680 #373737 !important;
+  background-color: rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Pixelated image rendering */
+.minecraft img {
+  image-rendering: pixelated;
+}
+
+/* Grass-block top accent on the primary nav */
+.minecraft header nav {
+  border-top: 3px solid transparent;
+  border-image: linear-gradient(to right, #7fb238, #5d9b47, #7fb238, #526935, #7fb238) 1;
 }
 
 /* Scrollbars — soften dark mode (default WebKit scrollbar reads as white) */

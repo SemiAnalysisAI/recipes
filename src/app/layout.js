@@ -1,8 +1,11 @@
 import { Inter, JetBrains_Mono } from "next/font/google";
+import localFont from "next/font/local";
 import Link from "next/link";
 import { Analytics } from "@vercel/analytics/next";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { SearchBox } from "@/components/recipes/SearchBox";
+import { ClickSound } from "@/components/ui/click-sound";
+import { MinecraftBackground } from "@/components/minecraft/MinecraftBackground";
 import { getAllRecipes } from "@/lib/recipes";
 import "./globals.css";
 
@@ -15,6 +18,12 @@ const inter = Inter({
 const jetbrainsMono = JetBrains_Mono({
   variable: "--font-jetbrains",
   subsets: ["latin", "latin-ext"],
+  display: "swap",
+});
+
+const monocraft = localFont({
+  src: "./fonts/Monocraft.woff2",
+  variable: "--font-minecraft",
   display: "swap",
 });
 
@@ -81,8 +90,11 @@ export default async function RootLayout({ children }) {
   }));
 
   return (
-    <html lang="en" className={`${inter.variable} ${jetbrainsMono.variable}`}>
-      <body className="antialiased bg-background text-foreground min-h-screen flex flex-col">
+    <html lang="en" className={`${inter.variable} ${jetbrainsMono.variable} ${monocraft.variable}`}>
+      <body className="antialiased bg-background text-foreground min-h-screen">
+        <MinecraftBackground />
+        <ClickSound />
+        <div className="relative z-10 min-h-screen flex flex-col">
         {/* Global header */}
         <header className="border-b border-border bg-background/95 backdrop-blur-sm sticky top-0 z-30">
           <div className="max-w-[1480px] mx-auto px-4 sm:px-6 h-16 flex items-center gap-4">
@@ -93,7 +105,7 @@ export default async function RootLayout({ children }) {
                 alt="vLLM"
                 width={96}
                 height={36}
-                className="h-8 w-auto dark:hidden"
+                className="h-8 w-auto dark:hidden minecraft:hidden"
               />
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
@@ -101,7 +113,7 @@ export default async function RootLayout({ children }) {
                 alt="vLLM"
                 width={96}
                 height={36}
-                className="h-8 w-auto hidden dark:block"
+                className="h-8 w-auto hidden dark:block minecraft:block"
               />
               <span className="text-muted-foreground/50 font-light text-xl leading-none">/</span>
               <span className="font-semibold text-base group-hover:text-vllm-blue transition-colors">Recipes</span>
@@ -136,6 +148,7 @@ export default async function RootLayout({ children }) {
             <a href="/models.json" className="hover:text-foreground transition-colors">JSON API</a>
           </div>
         </footer>
+        </div>
         <Analytics />
       </body>
     </html>

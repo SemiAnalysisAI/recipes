@@ -2,7 +2,6 @@ import { Inter, JetBrains_Mono } from "next/font/google";
 import localFont from "next/font/local";
 import Link from "next/link";
 import { Analytics } from "@vercel/analytics/next";
-import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { SearchBox } from "@/components/recipes/SearchBox";
 import { ClickSound } from "@/components/ui/click-sound";
 import { MinecraftBackground } from "@/components/minecraft/MinecraftBackground";
@@ -101,19 +100,11 @@ export default async function RootLayout({ children }) {
             <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity group shrink-0">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src="https://docs.vllm.ai/en/latest/assets/logos/vllm-logo-text-light.png"
-                alt="vLLM"
-                width={96}
-                height={36}
-                className="h-8 w-auto dark:hidden minecraft:hidden"
-              />
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
                 src="https://docs.vllm.ai/en/latest/assets/logos/vllm-logo-text-dark.png"
                 alt="vLLM"
                 width={96}
                 height={36}
-                className="h-8 w-auto hidden dark:block minecraft:block"
+                className="h-8 w-auto"
               />
               <span className="text-muted-foreground/50 font-light text-xl leading-none">/</span>
               <span className="font-semibold text-base group-hover:text-vllm-blue transition-colors">Recipes</span>
@@ -127,7 +118,6 @@ export default async function RootLayout({ children }) {
             <nav className="flex items-center gap-4 text-sm text-muted-foreground shrink-0">
               <a href="https://docs.vllm.ai" className="hover:text-foreground transition-colors hidden sm:inline">Docs</a>
               <a href="https://github.com/vllm-project/recipes" className="hover:text-foreground transition-colors hidden sm:inline">GitHub</a>
-              <ThemeToggle />
             </nav>
           </div>
         </header>

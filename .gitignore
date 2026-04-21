@@ -14,3 +14,4 @@ public/strategies/
 public/providers/
 public/hf-dates.json
 public/*/
+.vercel

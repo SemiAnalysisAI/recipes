@@ -11,6 +11,7 @@ import { PokemonBackground } from "@/components/pokemon/PokemonBackground";
 import { OsrsBackground } from "@/components/osrs/OsrsBackground";
 import { CyberpunkBackground } from "@/components/cyberpunk/CyberpunkBackground";
 import { getAllRecipes } from "@/lib/recipes";
+import { siteUrl } from "@/lib/site-url";
 import "./globals.css";
 
 const inter = Inter({
@@ -51,15 +52,6 @@ const orbitron = Orbitron({
   display: "swap",
 });
 
-// Resolve the canonical URL used for metadataBase and absolute OG URLs.
-//   - Production / custom env:    NEXT_PUBLIC_SITE_URL (explicit override)
-//   - Vercel preview/deployment:  VERCEL_URL (unique per-deploy hostname) —
-//     without this, previews would advertise OG images pointing at the prod
-//     domain, which 404s until the PR is merged.
-//   - Local default:              https://recipes.vllm.ai
-const siteUrl =
-  process.env.NEXT_PUBLIC_SITE_URL ||
-  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "https://recipes.vllm.ai");
 const defaultOgUrl = `/og?title=${encodeURIComponent("vLLM Recipes")}&subtitle=${encodeURIComponent("Deploy any model on any hardware")}`;
 
 export const metadata = {
@@ -101,11 +93,13 @@ export default async function RootLayout({ children }) {
     hf_org: r.hf_org,
     hf_repo: r.hf_repo,
     hf_id: r.hf_id,
+    hf_released: r.hf_released,
     meta: {
       title: r.meta.title,
       provider: r.meta.provider,
       description: r.meta.description,
       tasks: r.meta.tasks,
+      hardware: r.meta.hardware || {},
     },
     model: {
       architecture: r.model.architecture,
@@ -153,6 +147,7 @@ export default async function RootLayout({ children }) {
             </div>
 
             <nav className="flex items-center gap-4 text-sm text-muted-foreground shrink-0">
+              <Link href="/browse" className="hover:text-foreground transition-colors hidden sm:inline">Browse</Link>
               <a href="https://docs.vllm.ai" className="hover:text-foreground transition-colors hidden sm:inline">Docs</a>
               <a href="https://github.com/vllm-project/recipes" className="hover:text-foreground transition-colors hidden sm:inline">GitHub</a>
               <ThemeToggle />

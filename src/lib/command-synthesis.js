@@ -3,6 +3,19 @@
  * Pure functions, no I/O.
  */
 
+// NVL4-only env vars: NCCL symmetric memory + cross-node NVLink kernels +
+// UCX device selection. Tuned for GB200/GB300 NVL4 trays (NVL72 rack with
+// NVLink between nodes); on plain HGX nodes they're either inert or harmful,
+// so they're filtered out unless the user picks a GB NVL4 profile.
+const NVL4_ONLY_ENV_KEYS = new Set([
+  "VLLM_USE_NCCL_SYMM_MEM",
+  "NCCL_CUMEM_ENABLE",
+  "NCCL_MNNVL_ENABLE",
+  "NCCL_NVLS_ENABLE",
+  "UCX_NET_DEVICES",
+]);
+const NVL4_HW_IDS = new Set(["gb200", "gb300"]);
+
 /**
  * Normalize gpu_generation to a single string for hardware_overrides lookup.
  */
@@ -51,8 +64,23 @@ export function resolveSingleNodeTp(recipe, variant, hwProfile, strategyName = "
  * tested, works for both dense and MoE. TEP / DEP / PD-cluster are
  * advanced strategies that users can opt into explicitly.
  */
-export function recommendStrategy(recipe, hwProfile, nodeCount = 1) {
+export function recommendStrategy(recipe, _hwProfile, nodeCount = 1) {
   const compatible = recipe.compatible_strategies || [];
+  // Recipe-level override — useful when the global TP-first preference is wrong
+  // for a model (e.g. MoE recipes where TEP/DEP is the intended default and TP
+  // is offered only as a latency-oriented alternative).
+  const explicit = recipe.default_strategy;
+  if (explicit && compatible.includes(explicit)) {
+    if (nodeCount > 1 && explicit.startsWith("single_node_")) {
+      // Single-node default at >1 node: prefer the multi-node sibling so a
+      // recipe whose single-node default is single_node_tep doesn't fall back
+      // to the global multi-node preference order (which puts dep before tep).
+      const sibling = explicit.replace(/^single_node_/, "multi_node_");
+      if (compatible.includes(sibling)) return sibling;
+    } else {
+      return explicit;
+    }
+  }
   if (nodeCount > 1) {
     if (compatible.includes("multi_node_tp")) return "multi_node_tp";
     if (compatible.includes("multi_node_dep")) return "multi_node_dep";
@@ -93,14 +121,36 @@ export function isPrecisionCompatible(profile, variant) {
 }
 
 /**
+ * Recipe-level hardware opt-out: author marked `meta.hardware.<id>: unsupported`
+ * because the model is known not to run on that GPU. Absence = silent default
+ * (assumed to work); `verified` = positively tested (separate signal).
+ */
+export function isHardwareSupported(recipe, hwId) {
+  return recipe?.meta?.hardware?.[hwId] !== "unsupported";
+}
+
+/**
  * List hardware profiles compatible with a variant by precision constraint
  * only. VRAM is NOT a blocking constraint — users can scale out via multi-node
  * TP/DP, so any profile that satisfies the precision requirement is valid.
  */
-export function listCompatibleHardware(hwProfiles, variant) {
+export function listCompatibleHardware(hwProfiles, variant, recipe) {
   return Object.entries(hwProfiles)
-    .filter(([, p]) => isPrecisionCompatible(p, variant))
+    .filter(([id, p]) => isPrecisionCompatible(p, variant) && isHardwareSupported(recipe, id))
     .map(([id]) => id);
+}
+
+/**
+ * Single-node fit check: strategies bound to one node (TP, TEP, DEP) shard
+ * weights across that node's GPUs and can't scale VRAM further. Returns false
+ * when the variant's declared `vram_minimum_gb` exceeds the node's `vram_gb`.
+ * Missing size info → treat as fit (don't block on incomplete metadata).
+ */
+export function fitsSingleNode(hwProfile, variant) {
+  const nodeVram = typeof hwProfile?.vram_gb === "number" ? hwProfile.vram_gb : 0;
+  const modelVram = variant?.vram_minimum_gb || 0;
+  if (modelVram <= 0 || nodeVram <= 0) return true;
+  return modelVram <= nodeVram;
 }
 
 /**
@@ -121,10 +171,13 @@ export function pdFitsSingleNode(hwProfile, variant) {
  * Given a variant, pick the preferred default hardware:
  * - If variant requires Blackwell (e.g., NVFP4), prefer B200 then GB200
  * - Otherwise H200 is the canonical default
+ * `recipe` is optional; when provided, hardware marked `unsupported` is excluded.
  */
-export function pickDefaultHardware(hwProfiles, variant) {
+export function pickDefaultHardware(hwProfiles, variant, recipe) {
   const constraint = PRECISION_HARDWARE_CONSTRAINTS[variant?.precision];
-  const compatible = Object.entries(hwProfiles).filter(([, p]) => matchesConstraint(p, constraint));
+  const compatible = Object.entries(hwProfiles).filter(
+    ([id, p]) => matchesConstraint(p, constraint) && isHardwareSupported(recipe, id)
+  );
 
   if (constraint?.generation === "blackwell") {
     if (compatible.some(([id]) => id === "b200")) return "b200";
@@ -281,7 +334,10 @@ export function resolveCommand(recipe, variantKey, strategyName, hwProfileId, en
         // Always emit start-rank (even 0 for node 0) so every node's command
         // has the same shape; only the value differs per node.
         args.push("--data-parallel-start-rank", String(nodeIdx * dpLocal));
-        args.push("--data-parallel-address", `$${roleKey.toUpperCase()}_DP_LEADER_IP`);
+        // DP leader is always node 0 of the pool — rendered as NODE_1 (1-indexed,
+        // same naming as the router's --prefill/--decode endpoints) so the user
+        // only fills one IP per node, not separate LEADER/HOST/HEAD aliases.
+        args.push("--data-parallel-address", `$${roleKey.toUpperCase()}_NODE_1`);
         args.push("--data-parallel-rpc-port", `$${roleKey.toUpperCase()}_DP_RPC_PORT`);
         // Multi-node DEP needs hybrid load balancing — without this flag the
         // router distributes requests round-robin across DP ranks, which
@@ -301,7 +357,8 @@ export function resolveCommand(recipe, variantKey, strategyName, hwProfileId, en
         if (rolePoolNodes > 1) {
           args.push("--nnodes", String(rolePoolNodes));
           args.push("--node-rank", "0");
-          args.push("--master-addr", `$${roleKey.toUpperCase()}_HEAD_IP`);
+          // TP master = node 0 of pool = NODE_1 (same naming as router endpoints).
+          args.push("--master-addr", `$${roleKey.toUpperCase()}_NODE_1`);
         }
       }
     } else {
@@ -333,8 +390,17 @@ export function resolveCommand(recipe, variantKey, strategyName, hwProfileId, en
     //    Precedence: generation-specific (hopper/blackwell/amd) > brand-wide (nvidia).
     //    `nvidia:` lets a recipe apply the same overrides to every NVIDIA GPU
     //    without duplicating hopper and blackwell blocks.
+    //
+    //    A strategy may further override hardware overrides via
+    //    `strategy_overrides.<strategy>.hardware_overrides.<gen>` — when set,
+    //    it REPLACES the recipe-level hardware override for that gen on that
+    //    strategy. Use this to drop a recipe-wide hw flag (e.g. an MoE kernel
+    //    backend) for a specific strategy without duplicating the rest.
     const isNvidia = hwProfile?.brand === "NVIDIA";
-    const ho = recipe.hardware_overrides?.[gen]
+    const strategyHo = so?.hardware_overrides?.[gen]
+      || (isNvidia ? so?.hardware_overrides?.nvidia : null);
+    const ho = strategyHo
+      || recipe.hardware_overrides?.[gen]
       || (isNvidia ? recipe.hardware_overrides?.nvidia : null);
     if (ho?.extra_args) args.push(...ho.extra_args);
 
@@ -342,9 +408,17 @@ export function resolveCommand(recipe, variantKey, strategyName, hwProfileId, en
     if (advancedArgs && advancedArgs.length) args.push(...advancedArgs);
 
     // 7. Features last — tool_calling, reasoning, mtp, etc.
+    //    A feature can declare per-generation overrides under
+    //    `hardware_overrides.<gen>.args`; when present they REPLACE the
+    //    feature's default args (not merged), so a recipe can ship different
+    //    spec-decoding configs for hopper vs blackwell without dedupe gymnastics.
     for (const f of enabledFeatures || []) {
       const feat = recipe.features?.[f];
-      if (feat?.args) args.push(...feat.args);
+      if (!feat) continue;
+      const featHo = feat.hardware_overrides?.[gen]
+        || (isNvidia ? feat.hardware_overrides?.nvidia : null);
+      const featArgs = featHo?.args ?? feat.args;
+      if (featArgs) args.push(...featArgs);
     }
 
     return args;
@@ -405,11 +479,45 @@ export function resolveCommand(recipe, variantKey, strategyName, hwProfileId, en
     }
 
     // Hardware overrides env — same precedence as args block: generation key
-    // first, then brand-wide `nvidia:` for NVIDIA GPUs.
+    // first, then brand-wide `nvidia:` for NVIDIA GPUs. Per-strategy nested
+    // hardware_overrides REPLACES the recipe-level for that gen on that
+    // strategy (mirrors the args-block behavior).
     const envIsNvidia = hwProfile?.brand === "NVIDIA";
-    const envHo = recipe.hardware_overrides?.[gen]
+    const envStrategyHo = so?.hardware_overrides?.[gen]
+      || (envIsNvidia ? so?.hardware_overrides?.nvidia : null);
+    const envHo = envStrategyHo
+      || recipe.hardware_overrides?.[gen]
       || (envIsNvidia ? recipe.hardware_overrides?.nvidia : null);
     if (envHo?.extra_env) Object.assign(env, envHo.extra_env);
+
+    // NVL4-only env vars are meaningful only on GB200/GB300 trays. Drop them
+    // for any other hardware regardless of where they came from (strategy YAML
+    // or recipe-level pd_cluster override).
+    if (strategy.deploy_type === "pd_cluster" && !NVL4_HW_IDS.has(hwProfileId)) {
+      for (const key of NVL4_ONLY_ENV_KEYS) delete env[key];
+    }
+
+    // Per-rank node rewrite: strategy YAML carries `$PREFILL_NODE_1` /
+    // `$DECODE_NODE_1` as the rank-0 default for per-node bind hosts (NIXL
+    // side channel etc). For DEP pools where the UI shows a non-zero rank's
+    // command, point those values at NODE_{rank+1} so the rendered command
+    // matches that physical node. TP pools always render the head node, so
+    // NODE_1 is already correct.
+    if (strategy.deploy_type === "pd_cluster" && roleOverride) {
+      const raw = pdNodes ? pdNodes[roleOverride] : undefined;
+      const pdRoleObj =
+        typeof raw === "number" ? { nodes: raw }
+        : (raw && typeof raw === "object") ? raw
+        : {};
+      const rank = pdRoleObj.rank || 0;
+      if (rank > 0) {
+        const oldVar = `$${roleOverride.toUpperCase()}_NODE_1`;
+        const newVar = `$${roleOverride.toUpperCase()}_NODE_${rank + 1}`;
+        for (const k of Object.keys(env)) {
+          if (env[k] === oldVar) env[k] = newVar;
+        }
+      }
+    }
 
     return env;
   }
@@ -461,6 +569,16 @@ export function resolveCommand(recipe, variantKey, strategyName, hwProfileId, en
     return out;
   }
 
+  // Wrap values containing shell-special chars in single quotes so the rendered
+  // command is paste-safe. Without this, JSON values like
+  // `{"cudagraph_mode":"FULL_AND_PIECEWISE"}` trigger brace expansion and get
+  // their double quotes stripped by bash.
+  function shellQuote(s) {
+    if (typeof s !== "string" || s.length === 0) return s;
+    if (/^[A-Za-z0-9_./=:@,+%-]+$/.test(s)) return s;
+    return `'${s.replace(/'/g, "'\\''")}'`;
+  }
+
   function formatCommand(args) {
     const filtered = dedupeArgs(args.filter(Boolean));
     if (filtered.length === 0) return `vllm serve ${modelId}`;
@@ -472,7 +590,7 @@ export function resolveCommand(recipe, variantKey, strategyName, hwProfileId, en
       const cur = filtered[i];
       const next = filtered[i + 1];
       if (cur.startsWith("-") && next !== undefined && !next.startsWith("-")) {
-        lines.push(`${cur} ${next}`);
+        lines.push(`${cur} ${shellQuote(next)}`);
         i++;
       } else {
         lines.push(cur);
@@ -522,27 +640,32 @@ export function resolveCommand(recipe, variantKey, strategyName, hwProfileId, en
     const pMeta = roleMeta("prefill");
     const dMeta = roleMeta("decode");
     // Router endpoints: one per node (each node binds its own HTTP --port).
-    // Placeholder hostnames (PREFILL_NODE_1 … N, DECODE_NODE_1 … N) — deployers
-    // substitute real IPs. 1-indexed in the placeholder so it matches what the
-    // UI shows the user.
+    // Shell-variable form ($PREFILL_NODE_N / $DECODE_NODE_N) so the same name
+    // the prefill/decode commands consume is also what the router lists —
+    // user fills one set of values in the Endpoints panel, applied everywhere.
     const prefillEndpoints = Array.from(
       { length: Math.max(1, pMeta.nodes || 1) },
-      (_, i) => `    --prefill http://PREFILL_NODE_${i + 1}:8001 \\`,
+      (_, i) => `    --prefill http://$PREFILL_NODE_${i + 1}:8001 \\`,
     );
     const decodeEndpoints = Array.from(
       { length: Math.max(1, dMeta.nodes || 1) },
-      (_, i) => `    --decode http://DECODE_NODE_${i + 1}:8002 \\`,
+      (_, i) => `    --decode http://$DECODE_NODE_${i + 1}:8002 \\`,
     );
     // intra-node-data-parallel-size = max dp_local across the two pools for
     // DEP setups; 1 for pure-TP PD.
     const intraDp = Math.max(pMeta.dpLocal || 0, dMeta.dpLocal || 0, 1);
+    // Router --host / --port use the same $ROUTER_HOST / $ROUTER_PORT vars
+    // that curl / bench target, so filling them once in the Endpoints panel
+    // makes the router and clients agree. Unfilled, shell leaves the $VAR
+    // literal — vllm-router won't accept that, so the user must either fill
+    // the panel or `export ROUTER_HOST=…; export ROUTER_PORT=…` first.
     const routerLines = [
       `vllm-router --policy ${policy} \\`,
       `    --vllm-pd-disaggregation \\`,
       ...prefillEndpoints,
       ...decodeEndpoints,
-      `    --host 127.0.0.1 \\`,
-      `    --port 30000 \\`,
+      `    --host $ROUTER_HOST \\`,
+      `    --port $ROUTER_PORT \\`,
       `    --intra-node-data-parallel-size ${intraDp}`,
     ];
     const routerCommand = routerLines.join("\n");
